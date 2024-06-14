@@ -1,6 +1,8 @@
-target/*
+java-rust/target/*
 
 *.lib
 *.obj
 *.exp
 *.dll
+
+.vscode/*
