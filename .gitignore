@@ -6,3 +6,7 @@ java-rust/target/*
 *.dll
 
 .vscode/*
+
+java-rust-gradle/target/*
+java-rust-gradle/build/*
+java-rust-gradle/.gradle/*
