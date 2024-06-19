@@ -1,0 +1,70 @@
+plugins {
+    id 'java'
+}
+
+version '1.0.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+}
+
+task buildRust(type: Exec) {
+    commandLine 'cargo', 'build'
+}
+
+compileJava.dependsOn buildRust
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
+}
+
+task copyNativeLibs(type: Copy) {
+    from 'target/debug'
+    into "$buildDir/resources/main/lib"
+    include '*.so', '*.dll', '*.dylib'
+}
+
+processResources.dependsOn copyNativeLibs
+
+tasks.withType(Jar) {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    manifest {
+        attributes 'Main-Class': 'HelloWorld'
+    }
+    dependsOn processResources
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-h" << "src/main/java"
+}
+
+test {
+    useJUnit()
+
+    // This is added here because we are using Junit4 which uses some properties of greater Java versions
+    // such as unmodifiable maps.
+    jvmArgs '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+}
